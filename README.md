@@ -1,6 +1,8 @@
-BLE Heart Rate Demo
+# HRV-BLE-Cordova
 
-Connects to a peripherial providing the [Heart Rate Service](http://goo.gl/wKH3X7).
+Cross platform HRV calcuation with physiological and subjective data logging to serverBLE Heart Rate Demo
+
+Connects to a peripherial providing the BLE [Heart Rate Service](http://goo.gl/wKH3X7).
 
 Works with iOS or Android 4.3+.
 
