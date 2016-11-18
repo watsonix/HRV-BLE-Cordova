@@ -1,6 +1,6 @@
 # HRV-BLE-Cordova
 
-Cross platform HRV calcuation with physiological and subjective data logging to serverBLE Heart Rate Demo
+Cross platform HRV calcuation with physiological and subjective data logging to server
 
 Connects to a peripherial providing the BLE [Heart Rate Service](http://goo.gl/wKH3X7).
 
