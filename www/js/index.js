@@ -24,14 +24,14 @@ var heartRate = {
 var intervalID;
 
 // How often to send data to the server, in ms
-const SYNC_INTERVAL = 2000
+const SYNC_INTERVAL = 2000;
 // The server URL
-const SYNC_URL = 'https://example.com/'
+const SYNC_URL = 'http://35.164.69.103:5000/heartbeats';
 
 var app = {
     initialize: function() {
         this.bindEvents();
-        this.data = [];  // Whatever data you want to send to the server
+        this.data = ['hello world'];  // Whatever data you want to send to the server
         intervalID = window.setInterval(this.sendData.bind(this), SYNC_INTERVAL)
     },
     bindEvents: function() {
@@ -86,8 +86,7 @@ var app = {
         var xhr =  new XMLHttpRequest();
         var params = 'data=' + JSON.stringify(this.data);
         xhr.open("POST", SYNC_URL);
-        // If cross-site, need to set this in order to send cookies
-        xhr.withCredentials = true;
+        xhr.setRequestHeader('Content-Type', 'application/json')
         xhr.send(params);
     },
     onError: function(reason) {
