@@ -21,9 +21,18 @@ var heartRate = {
     measurement: '2a37'
 };
 
+var intervalID;
+
+// How often to send data to the server, in ms
+const SYNC_INTERVAL = 2000;
+// The server URL
+const SYNC_URL = 'http://35.164.69.103:5000/heartbeats';
+
 var app = {
     initialize: function() {
         this.bindEvents();
+        this.data = ['hello world'];  // Whatever data you want to send to the server
+        intervalID = window.setInterval(this.sendData.bind(this), SYNC_INTERVAL)
     },
     bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
@@ -71,6 +80,14 @@ var app = {
         // See the characteristic specs http://goo.gl/N7S5ZS
         var data = new Uint8Array(buffer);
         beatsPerMinute.innerHTML = data[1];
+        this.data.push(data[1])
+    },
+    sendData: function() {
+        var xhr =  new XMLHttpRequest();
+        var params = 'data=' + JSON.stringify(this.data);
+        xhr.open("POST", SYNC_URL);
+        xhr.setRequestHeader('Content-Type', 'application/json')
+        xhr.send(params);
     },
     onError: function(reason) {
         alert("There was an error " + reason);
@@ -78,7 +95,7 @@ var app = {
     status: function(message) {
         console.log(message);
         statusDiv.innerHTML = message;
-    }
+    },
     standardDeviation: function(data) {
         const avg = average(data)
         const squareDiffs = data.map(function (value) {
