@@ -34,7 +34,8 @@ var app = {
         document.addEventListener('deviceready', this.onDeviceReady, false);
     },
     onDeviceReady: function() {
-        app.scan();
+        //app.scan(); //comment out without device
+        serverPost()
     },
     scan: function(scanTry = 0, extraText = "") {
         var foundHeartRateMonitor = false;
@@ -85,6 +86,10 @@ var app = {
         if (std > 100) { 
             navigator.vibrate(3000); 
         } //see https://github.com/katzer/cordova-plugin-local-notifications for next level
+
+        //server post
+        serverPost()
+
     },
     onError: function(reason) {
         alert("There was an error " + reason);
@@ -143,6 +148,54 @@ function average (data) {
   }, 0)
   return sum / data.length
 };
+
+function serverPost (intervals) {
+
+    payload = {
+        start: "2016-09-13T13:09:28Z",
+        end: "2016-09-13T13:10:28Z",
+        beats: [1473772168098, 1473772168848] 
+    }
+
+    if (device.platform == "browser") { //debug via browser, don't use cordovaHTTP
+        var request = new XMLHttpRequest();   // new HttpRequest instance 
+        request.open("POST", "http://35.164.220.212:5000/heartbeats", true);
+        //request.setRequestHeader("Content-Type", "application/json");
+        request.onload = function () {
+            // do something to response
+            console.log(this.responseText);
+        }
+        request.send(JSON.stringify(payload));
+        return
+    }
+
+
+    console.log("trying cordovaHTTP post>>>>>>>>>>");
+    cordovaHTTP.post("35.164.220.212:5000/heartbeats", payload,
+        {}, 
+        function(response) {
+            // prints 200
+            console.log(response.status);
+            try {
+                response.data = JSON.parse(response.data);
+                // prints test
+                console.log("test***");
+                console.log(response.data.message);
+            } catch(e) {
+                console.log("test***");
+                console.error("JSON parsing error");
+            }
+        }, 
+        function(response) {
+            // prints 403
+            console.log("test***");
+            console.log(response.status);
+
+            //prints Permission denied 
+            console.log(response.error);
+        });
+}
+
 
 
 app.initialize();

@@ -9,6 +9,11 @@ Works with iOS or Android 4.3+.
     $ cordova platform add android
     $ cordova plugin add cordova-plugin-ble-central
     $ cordova plugin add cordova-plugin-vibration
+    $ cordova plugin add cordova-plugin-http
     $ cordova run
+
+For debugging in browser do:
+    $ cordova platform add browser
+    $ cordova plugin add cordova-plugin-device
 
 Branched from [this cordova BLE example](https://github.com/don/cordova-plugin-ble-central)
