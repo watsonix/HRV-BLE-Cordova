@@ -13,7 +13,12 @@ Works with iOS or Android 4.3+.
     $ cordova run
 
 For debugging in browser do:
+
     $ cordova platform add browser
     $ cordova plugin add cordova-plugin-device
+
+and add the ["Allow-Control-Allow-Origin" extension](https://chrome.google.com/webstore/detail/allow-control-allow-origi/nlfbmbojpeacfghkpbjhddihlkkiljbi?hl=en-US) to Chrome, which allows the browser to POST successfully. 
+
+The cordova-plugin-device plugin will allow for checking whether the app is being run in browser (debugging) mode or on an actual device.
 
 Branched from [this cordova BLE example](https://github.com/don/cordova-plugin-ble-central)

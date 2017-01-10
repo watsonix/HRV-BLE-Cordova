@@ -154,15 +154,20 @@ function serverPost (intervals) {
     payload = {
         start: "2016-09-13T13:09:28Z",
         end: "2016-09-13T13:10:28Z",
-        beats: [1473772168098, 1473772168848] 
+        beats: [1473772168098, 1473772168848, 'foo'] 
     }
 
     if (device.platform == "browser") { //debug via browser, don't use cordovaHTTP
         var request = new XMLHttpRequest();   // new HttpRequest instance 
         request.open("POST", "http://35.164.220.212:5000/heartbeats", true);
         //request.setRequestHeader("Content-Type", "application/json");
-        request.onload = function () {
+        request.onreadystatechange = function () {
             // do something to response
+            console.log('readystate:')
+            console.log(this.readyState)
+            console.log('status:')
+            console.log(this.status)
+            console.log('response:');
             console.log(this.responseText);
         }
         request.send(JSON.stringify(payload));
