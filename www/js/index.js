@@ -32,7 +32,15 @@ var app = {
     },
     bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
+        document.getElementById('feeling')
+          .addEventListener('click', this.clickFeeling, false);
     },
+
+    clickFeeling: function(event) {
+        var value = event.target.dataset.value
+        document.getElementById('feelingValue').innerHTML = value
+    },
+
     onDeviceReady: function() {
         //app.scan(); //comment out without device
         serverPost()
@@ -74,17 +82,17 @@ var app = {
     },
     onData: function(buffer) {
         // var data = new Uint8Array(buffer);
-        measurement = app.parseHeartRateMeasurement(buffer) 
+        measurement = app.parseHeartRateMeasurement(buffer)
         beatsPerMinute.innerHTML = measurement.heartRate
 
         //HRV calculation
         rrIntervals.push.apply(rrIntervals, measurement.rrIntervals) //add to RRI array
         while (rrIntervals.length > RRI_MAX) { rrIntervals.shift() } //remove old elements from RRI array
-        std = app.standardDeviation(rrIntervals) 
+        std = app.standardDeviation(rrIntervals)
         hrvSDRR.innerHTML = std
-        //**** last DEV: 
-        if (std > 100) { 
-            navigator.vibrate(3000); 
+        //**** last DEV:
+        if (std > 100) {
+            navigator.vibrate(3000);
         } //see https://github.com/katzer/cordova-plugin-local-notifications for next level
 
         //server post
