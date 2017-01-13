@@ -17,6 +17,7 @@
 
 //misc settings
 const RRI_MAX = 20;
+const API_SERVER = "35.167.145.159"
 
 // See BLE heart rate service http://goo.gl/wKH3X7
 var heartRate = {
@@ -44,7 +45,7 @@ var app = {
 
     onDeviceReady: function() {
         //app.scan(); //comment out without device
-        serverPost()
+        serverPostHeart()
     },
     scan: function(scanTry = 0, extraText = "") {
         var foundHeartRateMonitor = false;
@@ -97,7 +98,7 @@ var app = {
         } //see https://github.com/katzer/cordova-plugin-local-notifications for next level
 
         //server post
-        serverPost()
+        serverPostHeart()
 
     },
     onError: function(reason) {
@@ -152,23 +153,27 @@ var app = {
 };
 
 function average (data) {
-  var sum = data.reduce(function (sum, value) {
-    return sum + value
-  }, 0)
-  return sum / data.length
+    var sum = data.reduce(function (sum, value) {
+        return sum + value
+    }, 0)
+    return sum / data.length
 };
 
 function serverPostHeart (intervals){
 //send to server data on latest RRIs
+    payload = {
+        start: "2016-09-13T13:09:28Z",
+        end: "2016-09-13T13:10:28Z",
+        beats: [1473772168098, 1473772168848, 'foo'] 
+    }
+
+    serverPost(payload)
 }
 
 function serverPostExperience (type,value){
 //send to server data on type and value of subjective report
 //how activated are you calm ... activated
 //how pleasant do you feel. very unpleasant ... very pleasant
-}
-
-function serverPost (intervals) {
 
     payload = {
         start: "2016-09-13T13:09:28Z",
@@ -176,10 +181,14 @@ function serverPost (intervals) {
         beats: [1473772168098, 1473772168848, 'foo'] 
     }
 
+    serverPost(payload)
+}
+
+function serverPost (user,type,payload) {
     //debug via browser, don't use cordovaHTTP
     if (device.platform == "browser") { 
         var request = new XMLHttpRequest();   // new HttpRequest instance 
-        request.open("POST", "http://35.164.220.212:5000/heartbeats", true);
+        request.open("POST", "http://"+API_SERVER+":5000/heartbeats", true);
         //request.setRequestHeader("Content-Type", "application/json");
         request.onreadystatechange = function () {
             // do something to response
@@ -194,9 +203,8 @@ function serverPost (intervals) {
         return
     }
 
-
     console.log("trying cordovaHTTP post>>>>>>>>>>");
-    cordovaHTTP.post("35.164.220.212:5000/heartbeats", payload,
+    cordovaHTTP.post(API_SERVER+":5000/heartbeats", payload,
         {}, 
         function(response) {
             // prints 200
