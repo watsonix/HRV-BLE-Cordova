@@ -12,7 +12,7 @@ Works with iOS or Android 4.3+.
     $ cordova plugin add cordova-plugin-ble-central
     $ cordova plugin add cordova-plugin-vibration
     $ cordova plugin add cordova-plugin-http
-    $ cordova run
+    $ cordova run android
 
 ## For debugging in browser do:
 
