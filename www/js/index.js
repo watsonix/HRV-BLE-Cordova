@@ -39,6 +39,7 @@ var app = {
     clickFeeling: function(event) {
         var value = event.target.dataset.value
         document.getElementById('feelingValue').innerHTML = value
+        serverPost()
     },
 
     onDeviceReady: function() {
@@ -157,6 +158,16 @@ function average (data) {
   return sum / data.length
 };
 
+function serverPostHeart (intervals){
+//send to server data on latest RRIs
+}
+
+function serverPostExperience (type,value){
+//send to server data on type and value of subjective report
+//how activated are you calm ... activated
+//how pleasant do you feel. very unpleasant ... very pleasant
+}
+
 function serverPost (intervals) {
 
     payload = {
@@ -165,7 +176,8 @@ function serverPost (intervals) {
         beats: [1473772168098, 1473772168848, 'foo'] 
     }
 
-    if (device.platform == "browser") { //debug via browser, don't use cordovaHTTP
+    //debug via browser, don't use cordovaHTTP
+    if (device.platform == "browser") { 
         var request = new XMLHttpRequest();   // new HttpRequest instance 
         request.open("POST", "http://35.164.220.212:5000/heartbeats", true);
         //request.setRequestHeader("Content-Type", "application/json");
