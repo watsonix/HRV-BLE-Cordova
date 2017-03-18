@@ -1,23 +1,14 @@
-// (c) 2015 Don Coleman
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// 2017 Watson Xi and SAAT Team
 
 /* global ble, statusDiv, beatsPerMinute */
 /* jshint browser: true , devel: true*/
 
 //misc settings
-const RRI_MAX = 20;
-const API_SERVER = "35.167.145.159"
+const RRI_MAX = 20; //history size to take HRV from
+//const API_SERVER = "35.167.145.159" //production server
+const API_SERVER = "192.168.43.23" //dev host machine via hotspot
+//const API_SERVER = "localhost" //dev host machine when testing with browser
+const USER_ID = "CHANGE_ME"
 
 // See BLE heart rate service http://goo.gl/wKH3X7
 var heartRate = {
@@ -31,21 +22,30 @@ var app = {
     initialize: function() {
         this.bindEvents();
     },
+
     bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
-        document.getElementById('feeling')
-          .addEventListener('click', this.clickFeeling, false);
+        document.getElementById('pleasantness').addEventListener('click', this.clickPleasantness, false);
+        document.getElementById('activation').addEventListener('click', this.clickActivation, false);
     },
 
-    clickFeeling: function(event) {
+    clickPleasantness: function(event) {
         var value = event.target.dataset.value
-        document.getElementById('feelingValue').innerHTML = value
-        serverPost()
+        document.getElementById('pValue').innerHTML = value //show in interface
+        timestamp = currentTimeISOString()
+        serverPostExperience('pleasantness',timestamp,value)
+    },
+
+    clickActivation: function(event) {
+        var value = event.target.dataset.value
+        document.getElementById('aValue').innerHTML = value //show in interface
+        timestamp = currentTimeISOString()
+        serverPostExperience('activation',timestamp,value)
     },
 
     onDeviceReady: function() {
-        //app.scan(); //comment out without device
-        serverPostHeart()
+        app.scan(); //comment out without device
+        // serverPostHeart() //sending without argument is a test mode
     },
     scan: function(scanTry = 0, extraText = "") {
         var foundHeartRateMonitor = false;
@@ -83,8 +83,17 @@ var app = {
         setTimeout(app.scan,3000)
     },
     onData: function(buffer) {
-        // var data = new Uint8Array(buffer);
+        timestamp = currentTimeISOString()
         measurement = app.parseHeartRateMeasurement(buffer)
+
+        //TODO: (low priority) getting complaints when device is disconnected from body but still communicating 
+        //with mobile. this chunk is meant to debug / deal, but doesn't yet.
+        if (measurement.rrIntervals.length === 0) { 
+            console.log('no RR intervals ! >>>>')
+            return 
+        } //skip the rest if theres actually no data
+        console.log("measurement.rrIntervals.length " + measurement.rrIntervals.length.toString())
+
         beatsPerMinute.innerHTML = measurement.heartRate
 
         //HRV calculation
@@ -92,13 +101,12 @@ var app = {
         while (rrIntervals.length > RRI_MAX) { rrIntervals.shift() } //remove old elements from RRI array
         std = app.standardDeviation(rrIntervals)
         hrvSDRR.innerHTML = std
-        //**** last DEV:
         if (std > 100) {
             navigator.vibrate(3000);
         } //see https://github.com/katzer/cordova-plugin-local-notifications for next level
 
-        //server post
-        serverPostHeart()
+        //server post the latest intervals with the timestamp received
+        serverPostHeart(timestamp,measurement.rrIntervals)
 
     },
     onError: function(reason) {
@@ -111,6 +119,7 @@ var app = {
     parseHeartRateMeasurement: function (value) {         // See the characteristic specs http://goo.gl/N7S5ZS
         value = value.buffer ? value : new DataView(value) // check if DataView already. if not convert it
         let flags = value.getUint8(0)
+        console.log('new value received: '+ flags.toString())
         let rate16Bits = flags & 0x1
         let result = {}
         let index = 1
@@ -159,37 +168,70 @@ function average (data) {
     return sum / data.length
 };
 
-function serverPostHeart (intervals){
-//send to server data on latest RRIs
-    payload = {
-        start: "2016-09-13T13:09:28Z",
-        end: "2016-09-13T13:10:28Z",
-        beats: [1473772168098, 1473772168848, 'foo'] 
-    }
-
-    serverPost(payload)
+function currentTimeISOString() {
+    return new Date().toISOString()
 }
 
-function serverPostExperience (type,value){
+
+function serverPostHeart (timestamp,values){
+//send to server data on latest RRIs
+
+    if (typeof timestamp === "undefined") { //no args, run with default value (for debugging)
+        timestamp = currentTimeISOString()
+        payload = {
+            mobile_time: timestamp,
+            batch_index: 0, 
+            value: 666, 
+        }
+        serverPost("rr_intervals",payload)
+    } else { //package up values in correct format (see https://github.com/danielfennelly/SAAT-API/wiki)
+        for (i = 0; i + 1 < values.length; i += 1) {
+            nextItem = {
+                mobile_time: timestamp,
+                batch_index: i, // Collecting measurements returns a batch of several RRIntervals, and this is the index within a single batch.
+                value: values[i], // RRI in msec
+            }
+            // payload.push(nextItem) //TODO: eventually package up and post all together
+            serverPost("rr_intervals",nextItem)
+        }
+    }
+
+}
+
+function serverPostExperience (type,timestamp,value){
 //send to server data on type and value of subjective report
 //how activated are you calm ... activated
 //how pleasant do you feel. very unpleasant ... very pleasant
 
-    payload = {
-        start: "2016-09-13T13:09:28Z",
-        end: "2016-09-13T13:10:28Z",
-        beats: [1473772168098, 1473772168848, 'foo'] 
+    if (typeof type === "undefined") { //no args, run with default value (for debugging)
+        timestamp = currentTimeISOString()
+        type = "activation"
+        payload = {
+            mobile_time: timestamp,
+            value: 4 
+        }
+    } else if (type === "activation" || type === "pleasantness") { //package up values in correct format (see https://github.com/danielfennelly/SAAT-API/wiki)
+        payload = {
+            mobile_time: timestamp,
+            value: value, 
+        }
+    } else {
+        throw new Error("unknown type: " + type)
     }
 
-    serverPost(payload)
+    serverPost(type,payload)
 }
 
-function serverPost (user,type,payload) {
-    //debug via browser, don't use cordovaHTTP
-    if (device.platform == "browser") { 
+function serverPost (type,payload) {
+    post_url = "http://"+API_SERVER+":5000/users/"+USER_ID+"/measurements/"+type
+    // post_url = "http://"+API_SERVER+":5000/test/foo" //basic test. should return {'test': 'success'}
+
+    //TODO: remove conditional logic and take out cordovaHTTP below if XMLHttpRequest seems to work on 
+    //all devices with cordova-plugin-whitelist installed. do we care much about SSL pinning?
+    if (true) { //(device.platform == "browser") { 
         var request = new XMLHttpRequest();   // new HttpRequest instance 
-        request.open("POST", "http://"+API_SERVER+":5000/heartbeats", true);
-        //request.setRequestHeader("Content-Type", "application/json");
+        request.open("POST", post_url, true);
+        request.setRequestHeader("Content-Type", 'application/json; charset=utf-8');
         request.onreadystatechange = function () {
             // do something to response
             console.log('readystate:')
@@ -199,36 +241,38 @@ function serverPost (user,type,payload) {
             console.log('response:');
             console.log(this.responseText);
         }
+        console.log(">>>>>>>>>>sending JSON paylaod via XMLHR: "+JSON.stringify(payload));
+        console.log("URL: "+post_url)
         request.send(JSON.stringify(payload));
         return
     }
 
+    //TODO: probably take this all out vvvvvv
     console.log("trying cordovaHTTP post>>>>>>>>>>");
-    cordovaHTTP.post(API_SERVER+":5000/heartbeats", payload,
-        {}, 
+    console.log("URL: "+post_url)
+    console.log("payload: "+JSON.stringify(payload))
+    cordovaHTTP.post(post_url, payload, {}, 
         function(response) {
             // prints 200
             console.log(response.status);
             try {
                 response.data = JSON.parse(response.data);
                 // prints test
-                console.log("test***");
+                console.log("success!");
                 console.log(response.data.message);
             } catch(e) {
-                console.log("test***");
+                console.log("parse error");
                 console.error("JSON parsing error");
             }
         }, 
         function(response) {
             // prints 403
-            console.log("test***");
+            console.log("post error!");
             console.log(response.status);
 
             //prints Permission denied 
             console.log(response.error);
         });
 }
-
-
 
 app.initialize();
