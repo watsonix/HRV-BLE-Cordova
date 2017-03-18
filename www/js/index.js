@@ -143,7 +143,7 @@ class HeartRateSensor {
     }
 };
 
-document.getElementById("#connect-device").addEventListener("click", function () {
+document.getElementById("connect-device").addEventListener("click", function () {
     let heartRateSensor = new HeartRateSensor();
     console.log("Hello world!")
     heartRateSensor.connect()
