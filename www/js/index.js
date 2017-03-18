@@ -25,7 +25,7 @@ class HeartRateSensor {
       this._characteristics = new Map();
     }
     connect() {
-      return navigator.bluetooth.requestDevice({filters:[{services:[ 'heart_rate' ]}]})
+      return chrome.bluetooth.requestDevice({filters:[{services:[ 'heart_rate' ]}]})
       .then(device => {
         console.log('Its working!')
         this.device = device;
@@ -138,7 +138,7 @@ class HeartRateSensor {
       return characteristic.stopNotifications()
       .then(() => characteristic);
     }
-  }
+};
 
 
 var app = {
@@ -188,17 +188,17 @@ var app = {
         app.status(extraText + " Scanning for Heart Rate Monitor. Try number " + scanTry);
         //ble.scan([heartRate.service], 5, onScan, scanFailure);
 
-        function onScan(peripheral) {
-            // this is demo code, assume there is only one heart rate monitor
-            console.log("Found " + JSON.stringify(peripheral));
-            foundHeartRateMonitor = true;
+        // function onScan(peripheral) {
+        //     // this is demo code, assume there is only one heart rate monitor
+        //     console.log("Found " + JSON.stringify(peripheral));
+        //     foundHeartRateMonitor = true;
 
-            ble.connect(peripheral.id, app.onConnect, app.onDisconnect);
-        }
+        //     ble.connect(peripheral.id, app.onConnect, app.onDisconnect);
+        // }
 
-        function scanFailure(reason) {
-            alert("BLE Scan Failed");
-        }
+        // function scanFailure(reason) {
+        //     alert("BLE Scan Failed");
+        // }
 
         // setTimeout(function() {
         //     if (!foundHeartRateMonitor) {
