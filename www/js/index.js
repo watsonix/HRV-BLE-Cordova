@@ -25,7 +25,7 @@ class HeartRateSensor {
       this._characteristics = new Map();
     }
     connect() {
-      return chrome.bluetooth.requestDevice({filters:[{services:[ 'heart_rate' ]}]})
+      return navigator.bluetooth.requestDevice({filters:[{services:[ 'heart_rate' ]}]})
       .then(device => {
         console.log('Its working!')
         this.device = device;
@@ -42,6 +42,9 @@ class HeartRateSensor {
           })
         ]);
       })
+      .catch(error => {
+        console.log(error)
+      });
     }
 
     /* Heart Rate Service */
