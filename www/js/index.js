@@ -143,6 +143,19 @@ class HeartRateSensor {
     }
 };
 
+document.getElementById("#connect-device").addEventListener("click", function () {
+    let heartRateSensor = new HeartRateSensor();
+    console.log("Hello world!")
+    heartRateSensor.connect()
+    .then(() => heartRateSensor.startNotificationsHeartRateMeasurement().then(handleHeartRateMeasurement))
+    .catch(error => {});
+    function handleHeartRateMesasurement(heartRateMeasurement) {
+      heartRateMeasurement.addEventListener('characteristicvaluechanged', event => {
+        var heartRateMeasurement = heartRateSensor.parseHeartRate(event.target.value);
+        console.log(heartRateMeasurement.heartRate);
+      });
+    }
+})
 
 var app = {
     initialize: function() {
@@ -175,20 +188,6 @@ var app = {
     },
     scan: function(scanTry = 0, extraText = "") {
         var foundHeartRateMonitor = false;
-
-        document.addEventListener('onload', function() {
-            let heartRateSensor = new HeartRateSensor();
-            console.log("Hello world!")
-            heartRateSensor.connect()
-            .then(() => heartRateSensor.startNotificationsHeartRateMeasurement().then(handleHeartRateMeasurement))
-            .catch(error => {});
-            function handleHeartRateMesasurement(heartRateMeasurement) {
-              heartRateMeasurement.addEventListener('characteristicvaluechanged', event => {
-                var heartRateMeasurement = heartRateSensor.parseHeartRate(event.target.value);
-                console.log(heartRateMeasurement.heartRate);
-              });
-            }
-        })
 
         app.status(extraText + " Scanning for Heart Rate Monitor. Try number " + scanTry);
         //ble.scan([heartRate.service], 5, onScan, scanFailure);
