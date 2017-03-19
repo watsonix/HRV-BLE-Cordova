@@ -19,7 +19,6 @@ let USER_ID = "",
     connectButton = document.getElementById("connect-device");
     disconnectButton = document.getElementById("disconnect-device");
 disconnectButton.style.display = 'none';
-connectButton.style.display = 'none';
 
 for(var i = 0; i < USERS.length; i++) {
     let opt = USERS[i];
@@ -31,11 +30,6 @@ for(var i = 0; i < USERS.length; i++) {
 
 userSelector.onchange = function(){
     USER_ID = userSelector.options[userSelector.selectedIndex].value;
-    if (USER_ID) {
-        connectButton.style.display = "inline";
-    } else {
-        connectButton.style.display = "none";
-    }
     console.log(`USER_ID=${USER_ID}`);
 }
 
@@ -355,4 +349,4 @@ function currentTimeISOString() {
     return new Date().toISOString()
 };
 
-app.bindEvents()
+
