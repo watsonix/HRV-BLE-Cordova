@@ -3,12 +3,35 @@
 /* global ble, statusDiv, beatsPerMinute */
 /* jshint browser: true , devel: true*/
 
+
 //misc settings
 const RRI_MAX = 20; //history size to take HRV from
 const API_SERVER = "35.167.145.159" //production server
 //const API_SERVER = "0.0.0.0" //dev host machine via hotspot
 //const API_SERVER = "localhost" //dev host machine when testing with browser
-const USER_ID = "guest"
+
+/* User select stuff */
+let USERS = ["Watson", "Daniel", "Jean", "Kaan", "Logan", "Efrem"];
+
+let USER_ID = "",
+    userSelector = document.getElementById("selectUser");
+    connect_indicator = document.getElementById("connection"),
+    connectButton = document.getElementById("connect-device");
+    disconnectButton = document.getElementById("disconnect-device");
+disconnectButton.style.visibility = 'hidden';
+for(var i = 0; i < USERS.length; i++) {
+    let opt = USERS[i];
+    let el = document.createElement("option");
+    el.textContent = opt;
+    el.value = opt;
+    userSelector.appendChild(el);
+}
+
+userSelector.onchange = function(){
+    USER_ID = userSelector.options[userSelector.selectedIndex].value;
+    console.log(`USER_ID=${USER_ID}`);
+}
+
 
 // See BLE heart rate service http://goo.gl/wKH3X7
 var heartRate = {
@@ -27,8 +50,8 @@ function serverPostHeart (timestamp,values){
         timestamp = currentTimeISOString()
         payload = {
             mobile_time: timestamp,
-            batch_index: 0, 
-            value: 666, 
+            batch_index: 0,
+            value: 666,
         }
         serverPost("rr_intervals",payload)
     } else { //package up values in correct format (see https://github.com/danielfennelly/SAAT-API/wiki)
@@ -55,12 +78,12 @@ function serverPostExperience (type,timestamp,value){
         type = "activation"
         payload = {
             mobile_time: timestamp,
-            value: 4 
+            value: 4
         }
     } else if (type === "activation" || type === "pleasantness") { //package up values in correct format (see https://github.com/danielfennelly/SAAT-API/wiki)
         payload = {
             mobile_time: timestamp,
-            value: value, 
+            value: value,
         }
     } else {
         throw new Error("unknown type: " + type)
@@ -70,14 +93,15 @@ function serverPostExperience (type,timestamp,value){
 };
 
 function serverPost (type,payload) {
-    post_url = "https://"+API_SERVER+":443/users/"+USER_ID+"/measurements/"+type
+
+    post_url = `https://${API_SERVER}:443/users/${USER_ID.toLowerCase()}/measurements/${type}`
     console.log(post_url )
     // post_url = "http://"+API_SERVER+":5000/test/foo" //basic test. should return {'test': 'success'}
 
-    //TODO: remove conditional logic and take out cordovaHTTP below if XMLHttpRequest seems to work on 
+    //TODO: remove conditional logic and take out cordovaHTTP below if XMLHttpRequest seems to work on
     //all devices with cordova-plugin-whitelist installed. do we care much about SSL pinning?
-    if (true) { //(device.platform == "browser") { 
-        var request = new XMLHttpRequest();   // new HttpRequest instance 
+    if (true) { //(device.platform == "browser") {
+        var request = new XMLHttpRequest();   // new HttpRequest instance
         request.open("POST", post_url, true);
         request.setRequestHeader("Content-Type", 'application/json; charset=utf-8');
         request.onreadystatechange = function () {
@@ -99,7 +123,7 @@ function serverPost (type,payload) {
     console.log("trying cordovaHTTP post>>>>>>>>>>");
     console.log("URL: "+post_url)
     console.log("payload: "+JSON.stringify(payload))
-    cordovaHTTP.post(post_url, payload, {}, 
+    cordovaHTTP.post(post_url, payload, {},
         function(response) {
             // prints 200
             console.log(response.status);
@@ -112,13 +136,13 @@ function serverPost (type,payload) {
                 console.log("parse error");
                 console.error("JSON parsing error");
             }
-        }, 
+        },
         function(response) {
             // prints 403
             console.log("post error!");
             console.log(response.status);
 
-            //prints Permission denied 
+            //prints Permission denied
             console.log(response.error);
         });
 };
@@ -145,15 +169,28 @@ function handleHeartRateMeasurement (heartRateMeasurement) {
 
 
 document.getElementById("connect-device").addEventListener("click", function () {
-    console.log("Hello world!")
+    if (!USER_ID) {
+        return;
+    }
+    console.log("Hello world!");
+    connect_indicator.innerHTML = `${USER_ID} connected`;
+    userSelector.style.visibility = 'hidden';
+    connectButton.style.visibility = 'hidden';
+    disconnectButton.style.visibility = 'visible';
+
+
     heartRateSensor.connect()
-    .then(() => heartRateSensor.startNotificationsHeartRateMeasurement().then(handleHeartRateMeasurement))
+                   .then(() => heartRateSensor.startNotificationsHeartRateMeasurement().then(handleHeartRateMeasurement))
 });
 
 
 document.getElementById("disconnect-device").addEventListener("click", function () {
     console.log("Goodbye world!")
+    connect_indicator.innerHTML = ``;
     heartRateSensor.disconnect()
+    userSelector.style.visibility = 'visible';
+    connectButton.style.visibility = 'visible';
+    disconnectButton.style.visibility = 'hidden';
 });
 
 
@@ -225,11 +262,11 @@ var app = {
         timestamp = currentTimeISOString()
         measurement = app.parseHeartRateMeasurement(buffer)
 
-        //TODO: (low priority) getting complaints when device is disconnected from body but still communicating 
+        //TODO: (low priority) getting complaints when device is disconnected from body but still communicating
         //with mobile. this chunk is meant to debug / deal, but doesn't yet.
-        if (measurement.rrIntervals.length === 0) { 
+        if (measurement.rrIntervals.length === 0) {
             console.log('no RR intervals ! >>>>')
-            return 
+            return
         } //skip the rest if theres actually no data
         console.log("measurement.rrIntervals.length " + measurement.rrIntervals.length.toString())
 
