@@ -17,12 +17,22 @@ var heartRate = {
 };
 
 var rrIntervals = [];
+const INTERVAL = 30;
+
+function add (a, b) {
+    return a + b
+}
 
 function handleHeartRateMeasurement (heartRateMeasurement) {
     heartRateMeasurement.addEventListener('characteristicvaluechanged', event => {
         var heartRateMeasurement = heartRateSensor.parseHeartRate(event.target.value);
-        console.log(heartRateMeasurement.heartRate);
         beatsPerMinute.innerHTML = heartRateMeasurement.heartRate;
+        rrIntervals.push(heartRateMeasurement.heartRate)
+        if (rrIntervals.length() > INTERVAL) {
+            rrIntervals.shift()
+            hrvSDRR.innerHTML = (60000 * rrIntervals.length) / rrIntervals.reduce(add, 0) ;
+        }
+
     });
 };
 
