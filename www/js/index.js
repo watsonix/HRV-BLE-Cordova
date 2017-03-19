@@ -311,4 +311,4 @@ function currentTimeISOString() {
     return new Date().toISOString()
 };
 
-
+app.bindEvents()
