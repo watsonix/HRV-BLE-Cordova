@@ -23,7 +23,7 @@ function handleHeartRateMeasurement (heartRateMeasurement) {
     heartRateMeasurement.addEventListener('characteristicvaluechanged', event => {
         var heartRateMeasurement = heartRateSensor.parseHeartRate(event.target.value);
         console.log(heartRateMeasurement);
-        beatsPerMinute.innerHTML = heartRateMeasurement
+        document.getElementById("beatsPerMinute").innerHTML = heartRateMeasurement.heartRate
     });
 };
 
