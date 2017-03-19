@@ -18,10 +18,111 @@ var heartRate = {
 
 var rrIntervals = [];
 const INTERVAL = 30;
+function serverPostHeart (timestamp,values){
+//send to server data on latest RRIs
+    console.log(timestamp)
+    if (typeof timestamp === "undefined") { //no args, run with default value (for debugging)
+        timestamp = currentTimeISOString()
+        payload = {
+            mobile_time: timestamp,
+            batch_index: 0, 
+            value: 666, 
+        }
+        serverPost("rr_intervals",payload)
+    } else { //package up values in correct format (see https://github.com/danielfennelly/SAAT-API/wiki)
+        for (i = 0; i + 1 < values.length; i += 1) {
+            nextItem = {
+                mobile_time: timestamp,
+                batch_index: i, // Collecting measurements returns a batch of several RRIntervals, and this is the index within a single batch.
+                value: values[i], // RRI in msec
+            }
+            // payload.push(nextItem) //TODO: eventually package up and post all together
+            serverPost("rr_intervals",nextItem)
+        }
+    }
+
+};
+
+function serverPostExperience (type,timestamp,value){
+//send to server data on type and value of subjective report
+//how activated are you calm ... activated
+//how pleasant do you feel. very unpleasant ... very pleasant
+
+    if (typeof type === "undefined") { //no args, run with default value (for debugging)
+        timestamp = currentTimeISOString()
+        type = "activation"
+        payload = {
+            mobile_time: timestamp,
+            value: 4 
+        }
+    } else if (type === "activation" || type === "pleasantness") { //package up values in correct format (see https://github.com/danielfennelly/SAAT-API/wiki)
+        payload = {
+            mobile_time: timestamp,
+            value: value, 
+        }
+    } else {
+        throw new Error("unknown type: " + type)
+    }
+
+    serverPost(type,payload)
+};
+
+function serverPost (type,payload) {
+    post_url = "http://"+API_SERVER+":5000/users/"+USER_ID+"/measurements/"+type
+    // post_url = "http://"+API_SERVER+":5000/test/foo" //basic test. should return {'test': 'success'}
+
+    //TODO: remove conditional logic and take out cordovaHTTP below if XMLHttpRequest seems to work on 
+    //all devices with cordova-plugin-whitelist installed. do we care much about SSL pinning?
+    if (true) { //(device.platform == "browser") { 
+        var request = new XMLHttpRequest();   // new HttpRequest instance 
+        request.open("POST", post_url, true);
+        request.setRequestHeader("Content-Type", 'application/json; charset=utf-8');
+        request.onreadystatechange = function () {
+            // do something to response
+            console.log('readystate:')
+            console.log(this.readyState)
+            console.log('status:')
+            console.log(this.status)
+            console.log('response:');
+            console.log(this.responseText);
+        }
+        console.log(">>>>>>>>>>sending JSON paylaod via XMLHR: "+JSON.stringify(payload));
+        console.log("URL: "+post_url)
+        request.send(JSON.stringify(payload));
+        return
+    }
+
+    //TODO: probably take this all out vvvvvv
+    console.log("trying cordovaHTTP post>>>>>>>>>>");
+    console.log("URL: "+post_url)
+    console.log("payload: "+JSON.stringify(payload))
+    cordovaHTTP.post(post_url, payload, {}, 
+        function(response) {
+            // prints 200
+            console.log(response.status);
+            try {
+                response.data = JSON.parse(response.data);
+                // prints test
+                console.log("success!");
+                console.log(response.data.message);
+            } catch(e) {
+                console.log("parse error");
+                console.error("JSON parsing error");
+            }
+        }, 
+        function(response) {
+            // prints 403
+            console.log("post error!");
+            console.log(response.status);
+
+            //prints Permission denied 
+            console.log(response.error);
+        });
+};
 
 function add (a, b) {
     return a + b
-}
+};
 
 function handleHeartRateMeasurement (heartRateMeasurement) {
     heartRateMeasurement.addEventListener('characteristicvaluechanged', event => {
@@ -204,107 +305,6 @@ function average (data) {
 
 function currentTimeISOString() {
     return new Date().toISOString()
-}
+};
 
 
-function serverPostHeart (timestamp,values){
-//send to server data on latest RRIs
-
-    if (typeof timestamp === "undefined") { //no args, run with default value (for debugging)
-        timestamp = currentTimeISOString()
-        payload = {
-            mobile_time: timestamp,
-            batch_index: 0, 
-            value: 666, 
-        }
-        serverPost("rr_intervals",payload)
-    } else { //package up values in correct format (see https://github.com/danielfennelly/SAAT-API/wiki)
-        for (i = 0; i + 1 < values.length; i += 1) {
-            nextItem = {
-                mobile_time: timestamp,
-                batch_index: i, // Collecting measurements returns a batch of several RRIntervals, and this is the index within a single batch.
-                value: values[i], // RRI in msec
-            }
-            // payload.push(nextItem) //TODO: eventually package up and post all together
-            serverPost("rr_intervals",nextItem)
-        }
-    }
-
-}
-
-function serverPostExperience (type,timestamp,value){
-//send to server data on type and value of subjective report
-//how activated are you calm ... activated
-//how pleasant do you feel. very unpleasant ... very pleasant
-
-    if (typeof type === "undefined") { //no args, run with default value (for debugging)
-        timestamp = currentTimeISOString()
-        type = "activation"
-        payload = {
-            mobile_time: timestamp,
-            value: 4 
-        }
-    } else if (type === "activation" || type === "pleasantness") { //package up values in correct format (see https://github.com/danielfennelly/SAAT-API/wiki)
-        payload = {
-            mobile_time: timestamp,
-            value: value, 
-        }
-    } else {
-        throw new Error("unknown type: " + type)
-    }
-
-    serverPost(type,payload)
-}
-
-function serverPost (type,payload) {
-    post_url = "http://"+API_SERVER+":5000/users/"+USER_ID+"/measurements/"+type
-    // post_url = "http://"+API_SERVER+":5000/test/foo" //basic test. should return {'test': 'success'}
-
-    //TODO: remove conditional logic and take out cordovaHTTP below if XMLHttpRequest seems to work on 
-    //all devices with cordova-plugin-whitelist installed. do we care much about SSL pinning?
-    if (true) { //(device.platform == "browser") { 
-        var request = new XMLHttpRequest();   // new HttpRequest instance 
-        request.open("POST", post_url, true);
-        request.setRequestHeader("Content-Type", 'application/json; charset=utf-8');
-        request.onreadystatechange = function () {
-            // do something to response
-            console.log('readystate:')
-            console.log(this.readyState)
-            console.log('status:')
-            console.log(this.status)
-            console.log('response:');
-            console.log(this.responseText);
-        }
-        console.log(">>>>>>>>>>sending JSON paylaod via XMLHR: "+JSON.stringify(payload));
-        console.log("URL: "+post_url)
-        request.send(JSON.stringify(payload));
-        return
-    }
-
-    //TODO: probably take this all out vvvvvv
-    console.log("trying cordovaHTTP post>>>>>>>>>>");
-    console.log("URL: "+post_url)
-    console.log("payload: "+JSON.stringify(payload))
-    cordovaHTTP.post(post_url, payload, {}, 
-        function(response) {
-            // prints 200
-            console.log(response.status);
-            try {
-                response.data = JSON.parse(response.data);
-                // prints test
-                console.log("success!");
-                console.log(response.data.message);
-            } catch(e) {
-                console.log("parse error");
-                console.error("JSON parsing error");
-            }
-        }, 
-        function(response) {
-            // prints 403
-            console.log("post error!");
-            console.log(response.status);
-
-            //prints Permission denied 
-            console.log(response.error);
-        });
-}
