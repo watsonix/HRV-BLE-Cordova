@@ -30,7 +30,7 @@ function handleHeartRateMeasurement (heartRateMeasurement) {
         rrIntervals.push(heartRateMeasurement.heartRate)
         if (rrIntervals.length > INTERVAL) {
             rrIntervals.shift()
-            hrvSDRR.innerHTML = (60000 * rrIntervals.length) / rrIntervals.reduce(add, 0) ;
+            hrvSDRR.innerHTML = ((60000 * rrIntervals.length) / rrIntervals.reduce(add, 0)).toFixed(2) ;
         };
 
     });
