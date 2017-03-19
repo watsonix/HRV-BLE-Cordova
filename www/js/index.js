@@ -18,8 +18,11 @@ var heartRate = {
 
 var rrIntervals = [];
 const INTERVAL = 30;
+
+
 function serverPostHeart (timestamp,values){
 //send to server data on latest RRIs
+    console.log(values)
     if (typeof timestamp === "undefined") { //no args, run with default value (for debugging)
         timestamp = currentTimeISOString()
         payload = {
@@ -29,14 +32,15 @@ function serverPostHeart (timestamp,values){
         }
         serverPost("rr_intervals",payload)
     } else { //package up values in correct format (see https://github.com/danielfennelly/SAAT-API/wiki)
-        nextItem = {
-            mobile_time: timestamp,
-            batch_index: 0, // Collecting measurements returns a batch of several RRIntervals, and this is the index within a single batch.
-            value: values, // RRI in msec
+        for (i = 0; i + 1 < values.length; i += 1) {
+            nextItem = {
+                mobile_time: timestamp,
+                batch_index: i, // Collecting measurements returns a batch of several RRIntervals, and this is the index within a single batch.
+                value: values[i], // RRI in msec
+            }
+            // payload.push(nextItem) //TODO: eventually package up and post all together
+            serverPost("rr_intervals",nextItem)
         }
-        // payload.push(nextItem) //TODO: eventually package up and post all together
-        console.log(values)
-        serverPost("rr_intervals",nextItem);
     }
 
 };
@@ -67,7 +71,7 @@ function serverPostExperience (type,timestamp,value){
 
 function serverPost (type,payload) {
     post_url = "http://"+API_SERVER+":5000/users/"+USER_ID+"/measurements/"+type
-    console.log(post_url)
+    console.log(post_url )
     // post_url = "http://"+API_SERVER+":5000/test/foo" //basic test. should return {'test': 'success'}
 
     //TODO: remove conditional logic and take out cordovaHTTP below if XMLHttpRequest seems to work on 
@@ -133,7 +137,8 @@ function handleHeartRateMeasurement (heartRateMeasurement) {
             rrIntervals.shift()
             hrvSDRR.innerHTML = ((60000 * rrIntervals.length) / rrIntervals.reduce(add, 0)).toFixed(2) ;
         };
-        serverPostHeart(currentTimeISOString(), heartRateMeasurementVal)
+
+        serverPostHeart(currentTimeISOString(), heartRateMeasurement.rrIntervals)
 
     });
 };
