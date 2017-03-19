@@ -3,22 +3,33 @@
 /* global ble, statusDiv, beatsPerMinute */
 /* jshint browser: true , devel: true*/
 
-let select = document.getElementById("selectUser");
-let USERS = ["watson", "daniel", "jean", "kaan", "logan"];
-for(var i = 0; i < USERS.length; i++) {
-    let opt = USERS[i];
-    let el = document.createElement("option");
-    el.textContent = opt;
-    el.value = opt;
-    select.appendChild(el);
-}
 
 //misc settings
 const RRI_MAX = 20; //history size to take HRV from
 const API_SERVER = "35.167.145.159" //production server
 //const API_SERVER = "0.0.0.0" //dev host machine via hotspot
 //const API_SERVER = "localhost" //dev host machine when testing with browser
-const USER_ID = "guest"
+
+/* User select stuff */
+let USERS = ["watson", "daniel", "jean", "kaan", "logan"];
+
+let USER_ID = "",
+    userSelector = document.getElementById("selectUser");
+    connect_indicator = document.getElementById("connection");
+
+for(var i = 0; i < USERS.length; i++) {
+    let opt = USERS[i];
+    let el = document.createElement("option");
+    el.textContent = opt;
+    el.value = opt;
+    userSelector.appendChild(el);
+}
+
+userSelector.onchange = function(){
+    USER_ID = userSelector.options[userSelector.selectedIndex].value;
+    console.log(`USER_ID=${USER_ID}`);
+}
+
 
 // See BLE heart rate service http://goo.gl/wKH3X7
 var heartRate = {
@@ -80,6 +91,8 @@ function serverPostExperience (type,timestamp,value){
 };
 
 function serverPost (type,payload) {
+    let user_id = "poop"
+
     post_url = "https://"+API_SERVER+":443/users/"+USER_ID+"/measurements/"+type
     console.log(post_url )
     // post_url = "http://"+API_SERVER+":5000/test/foo" //basic test. should return {'test': 'success'}
@@ -155,15 +168,23 @@ function handleHeartRateMeasurement (heartRateMeasurement) {
 
 
 document.getElementById("connect-device").addEventListener("click", function () {
-    console.log("Hello world!")
+    if (!USER_ID) {
+        return;
+    }
+    console.log("Hello world!");
+    connect_indicator.innerHTML = `${USER_ID} connected`;
+    userSelector.style.visibility = 'hidden';
+
     heartRateSensor.connect()
-    .then(() => heartRateSensor.startNotificationsHeartRateMeasurement().then(handleHeartRateMeasurement))
+                   .then(() => heartRateSensor.startNotificationsHeartRateMeasurement().then(handleHeartRateMeasurement))
 });
 
 
 document.getElementById("disconnect-device").addEventListener("click", function () {
     console.log("Goodbye world!")
+    connect_indicator.innerHTML = ``;
     heartRateSensor.disconnect()
+    userSelector.style.visibility = 'visible';
 });
 
 
