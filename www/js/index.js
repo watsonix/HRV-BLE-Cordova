@@ -70,7 +70,7 @@ function serverPostExperience (type,timestamp,value){
 };
 
 function serverPost (type,payload) {
-    post_url = "http://"+API_SERVER+":5000/users/"+USER_ID+"/measurements/"+type
+    post_url = "https://"+API_SERVER+":5000/users/"+USER_ID+"/measurements/"+type
     console.log(post_url )
     // post_url = "http://"+API_SERVER+":5000/test/foo" //basic test. should return {'test': 'success'}
 
