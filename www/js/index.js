@@ -31,7 +31,7 @@ function handleHeartRateMeasurement (heartRateMeasurement) {
         if (rrIntervals.length > INTERVAL) {
             rrIntervals.shift()
             hrvSDRR.innerHTML = (60000 * rrIntervals.length) / rrIntervals.reduce(add, 0) ;
-        }
+        };
 
     });
 };
