@@ -22,8 +22,8 @@ function handleHeartRateMeasurement (heartRateMeasurement) {
     console.log("Next function")
     heartRateMeasurement.addEventListener('characteristicvaluechanged', event => {
         var heartRateMeasurement = heartRateSensor.parseHeartRate(event.target.value);
-        console.log(heartRateMeasurement);
-        document.getElementById("beatsPerMinute").innerHTML = heartRateMeasurement.heartRate
+        console.log(heartRateMeasurement.heartRate);
+        document.getElementById("beatsPerMinute").innerHTML = heartRateMeasurement.heartRate;
     });
 };
 
