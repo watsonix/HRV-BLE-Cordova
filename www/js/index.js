@@ -18,15 +18,17 @@ var heartRate = {
 
 var rrIntervals = [];
 
-document.getElementById("connect-device").addEventListener("click", function () {
-    console.log("Hello world!")
-    function handleHeartRateMesasurement(heartRateMeasurement) {
+function handleHeartRateMeasurement (heartRateMeasurement) {
     console.log("Next function")
     heartRateMeasurement.addEventListener('characteristicvaluechanged', event => {
         var heartRateMeasurement = heartRateSensor.parseHeartRate(event.target.value);
         console.log(heartRateMeasurement);
-  });
+    });
 };
+
+
+document.getElementById("connect-device").addEventListener("click", function () {
+    console.log("Hello world!")
     heartRateSensor.connect()
     .then(() => heartRateSensor.startNotificationsHeartRateMeasurement().then(handleHeartRateMeasurement))
 });
