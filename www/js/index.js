@@ -18,7 +18,8 @@ let USER_ID = "",
     connect_indicator = document.getElementById("connection"),
     connectButton = document.getElementById("connect-device");
     disconnectButton = document.getElementById("disconnect-device");
-disconnectButton.style.visibility = 'hidden';
+disconnectButton.style.display = 'none';
+
 for(var i = 0; i < USERS.length; i++) {
     let opt = USERS[i];
     let el = document.createElement("option");
@@ -94,8 +95,8 @@ function serverPostExperience (type,timestamp,value){
 
 function serverPost (type,payload) {
 
-    post_url = `https://${API_SERVER}:443/users/${USER_ID.toLowerCase()}/measurements/${type}`
-    console.log(post_url )
+    post_url = `https://${API_SERVER}:443/users/${USER_ID.toLowerCase()}/measurements/${type}`;
+    console.log(post_url );
     // post_url = "http://"+API_SERVER+":5000/test/foo" //basic test. should return {'test': 'success'}
 
     //TODO: remove conditional logic and take out cordovaHTTP below if XMLHttpRequest seems to work on
@@ -174,9 +175,9 @@ document.getElementById("connect-device").addEventListener("click", function () 
     }
     console.log("Hello world!");
     connect_indicator.innerHTML = `${USER_ID} connected`;
-    userSelector.style.visibility = 'hidden';
-    connectButton.style.visibility = 'hidden';
-    disconnectButton.style.visibility = 'visible';
+    userSelector.style.display = 'none';
+    connectButton.style.display = 'none';
+    disconnectButton.style.display = 'inline';
 
 
     heartRateSensor.connect()
@@ -188,9 +189,9 @@ document.getElementById("disconnect-device").addEventListener("click", function 
     console.log("Goodbye world!")
     connect_indicator.innerHTML = ``;
     heartRateSensor.disconnect()
-    userSelector.style.visibility = 'visible';
-    connectButton.style.visibility = 'visible';
-    disconnectButton.style.visibility = 'hidden';
+    userSelector.style.display = 'inline';
+    connectButton.style.display = 'inline';
+    disconnectButton.style.display = 'none';
 });
 
 
