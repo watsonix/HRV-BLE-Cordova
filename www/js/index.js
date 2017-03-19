@@ -29,7 +29,14 @@ document.getElementById("connect-device").addEventListener("click", function () 
         console.log(heartRateMeasurement.heartRate);
       });
     }
-})
+});
+
+
+document.getElementById("disconnect-device").addEventListener("click", function () {
+    console.log("Goodbye world!")
+    heartRateSensor.disconnect()
+});
+
 
 var app = {
     initialize: function() {
