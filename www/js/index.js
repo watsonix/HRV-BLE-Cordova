@@ -15,8 +15,10 @@ let USERS = ["Watson", "Daniel", "Jean", "Kaan", "Logan", "Efrem"];
 
 let USER_ID = "",
     userSelector = document.getElementById("selectUser");
-    connect_indicator = document.getElementById("connection");
-
+    connect_indicator = document.getElementById("connection"),
+    connectButton = document.getElementById("connect-device");
+    disconnectButton = document.getElementById("disconnect-device");
+disconnectButton.style.visibility = 'hidden';
 for(var i = 0; i < USERS.length; i++) {
     let opt = USERS[i];
     let el = document.createElement("option");
@@ -173,6 +175,9 @@ document.getElementById("connect-device").addEventListener("click", function () 
     console.log("Hello world!");
     connect_indicator.innerHTML = `${USER_ID} connected`;
     userSelector.style.visibility = 'hidden';
+    connectButton.style.visibility = 'hidden';
+    disconnectButton.style.visibility = 'visible';
+
 
     heartRateSensor.connect()
                    .then(() => heartRateSensor.startNotificationsHeartRateMeasurement().then(handleHeartRateMeasurement))
@@ -184,6 +189,8 @@ document.getElementById("disconnect-device").addEventListener("click", function 
     connect_indicator.innerHTML = ``;
     heartRateSensor.disconnect()
     userSelector.style.visibility = 'visible';
+    connectButton.style.visibility = 'visible';
+    disconnectButton.style.visibility = 'hidden';
 });
 
 
