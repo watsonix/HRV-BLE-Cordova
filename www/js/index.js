@@ -11,7 +11,7 @@ const API_SERVER = "35.167.145.159" //production server
 //const API_SERVER = "localhost" //dev host machine when testing with browser
 
 /* User select stuff */
-let USERS = ["watson", "daniel", "jean", "kaan", "logan"];
+let USERS = ["Watson", "Daniel", "Jean", "Kaan", "Logan", "Efrem"];
 
 let USER_ID = "",
     userSelector = document.getElementById("selectUser");
@@ -91,9 +91,8 @@ function serverPostExperience (type,timestamp,value){
 };
 
 function serverPost (type,payload) {
-    let user_id = "poop"
 
-    post_url = "https://"+API_SERVER+":443/users/"+USER_ID+"/measurements/"+type
+    post_url = `https://${API_SERVER}:443/users/${USER_ID.toLowerCase()}/measurements/${type}`
     console.log(post_url )
     // post_url = "http://"+API_SERVER+":5000/test/foo" //basic test. should return {'test': 'success'}
 
