@@ -5,10 +5,10 @@
 
 //misc settings
 const RRI_MAX = 20; //history size to take HRV from
-//const API_SERVER = "35.167.145.159" //production server
-const API_SERVER = "0.0.0.0" //dev host machine via hotspot
+const API_SERVER = "35.167.145.159" //production server
+//const API_SERVER = "0.0.0.0" //dev host machine via hotspot
 //const API_SERVER = "localhost" //dev host machine when testing with browser
-const USER_ID = "1234"
+const USER_ID = "guest"
 
 // See BLE heart rate service http://goo.gl/wKH3X7
 var heartRate = {
@@ -25,13 +25,15 @@ function add (a, b) {
 
 function handleHeartRateMeasurement (heartRateMeasurement) {
     heartRateMeasurement.addEventListener('characteristicvaluechanged', event => {
-        var heartRateMeasurement = heartRateSensor.parseHeartRate(event.target.value);
-        beatsPerMinute.innerHTML = heartRateMeasurement.heartRate;
-        rrIntervals.push(heartRateMeasurement.heartRate)
+        let heartRateMeasurement = heartRateSensor.parseHeartRate(event.target.value);
+        let heartRateMeasurementVal = heartRateMeasurement.heartRate
+        beatsPerMinute.innerHTML = heartRateMeasurementVal;
+        rrIntervals.push(heartRateMeasurementVal)
         if (rrIntervals.length > INTERVAL) {
             rrIntervals.shift()
             hrvSDRR.innerHTML = ((60000 * rrIntervals.length) / rrIntervals.reduce(add, 0)).toFixed(2) ;
         };
+        serverPostHeart(currentTimeISOString(), heartRateMeasurementVal)
 
     });
 };
@@ -306,8 +308,3 @@ function serverPost (type,payload) {
             console.log(response.error);
         });
 }
-
-
-  
-
-app.initialize();
