@@ -2,7 +2,6 @@
 <widget id="com.watsonxi.saat" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>HRV-BLE-Cordova</name>
     <description>
-        
     </description>
     <author href="https://github.com/watsonix">
         Watson Xi
@@ -10,4 +9,5 @@
     <content src="index.html" />
     <access origin="*" />
     <engine name="android" spec="~5.0.0" />
+    <engine name="browser" spec="~4.1.0" />
 </widget>
